@@ -1,0 +1,170 @@
+---
+title: "A Quick Introduction to Meta-Analysis in R"
+author: "Muhammad Yasir Anwar"
+output:
+  html_document:
+    toc: true
+    number_sections: false
+---
+
+<style type="text/css">
+h1 {color:#0E49F2;}
+h2 {color:#ffbd4a;}
+h3 {color:#1a2451;}
+</style>
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+setwd(getwd())  # Setting the working directory
+```
+
+## Introduction
+
+This is an RMD file written in R and it is rendered to an HTML format if you are viewing it on Rpubs. The purpose of writing this document is to give a brief introduction about meta-analysis using R. My main focus would be the studies in "Health care and Medicine." 
+
+For the sake of introduction and familiarizing ourselves with R and RStudio, we will limit ourselves only to calculating and pooling the effect sizes of event rate in a single arm trial, using a dummy dataset. 
+
+## What is R?
+
+R is a programming language just like other programming languages out there which you might have heard before, like Python, C++, Java etc. But R is specifically built to carry out statistical operations. It is used mainly by data scientists for data manipulation and visualization. But it has been a language of choice for conducting meta-analysis due to widely supported packages written by some brilliant intellectuals all over the world. 
+
+## What is Meta-Analysis?
+
+Meta-analysis is a quantitative summary of a given data. It is widely used in health care sciences to summarize the effects and outcomes of an intervention which is usually spread across multiple trials. In addition to the qualitative analysis which mostly is done in the form of systematic reviews and focused reviews, meta-analysis helps us in quantifying the net effect spread across all those bits of data. 
+The subject of meta-analysis is quite extensive and a person learns this process gradually overtime. One of the very good resources to understand the basics of meta-analysis is the book, "Introduction to Meta-analysis," by Borenstein et al. (2011). 
+
+## Pre-requisites
+
+In addition to a basic understanding of meta-analysis, you need to install R language and R Studio. Both of these are open source and free to download. The respective websites are https://cran.r-project.org and https://rstudio.com. 
+
+## Packages
+After setting up R and RStudio, you need to understand the packages in R. Packages are set of functions in R created by developers which do the tasks for us in the background and provide us with the output. The packages mainly used for meta-analysis in R include "Meta" and "Metafor." Meta is good for beginners due to its easier to read code and command lines. In order to install meta package in R, following command is used:
+
+```{r, eval=FALSE, echo=TRUE}
+
+install.packages("meta")
+
+```
+
+
+In order to use a package, we have to load a library first. 
+The command to load a package is: 
+
+```{r install packages, message=FALSE, warning=FALSE}
+
+library("meta")
+
+```
+
+## Getting Help
+One of the things you will need the most while using R is to see the documentation of the package and various functions in it. You can do it easily by typing a question mark before that package or function.
+
+```{r Getting Help, eval=FALSE, echo=TRUE}
+?meta
+
+```
+
+After seeing the documentation, you will be able to have a basic idea about the basic functions and their uses. 
+
+## Meta Package
+Meta package is one of the most comprehensive packages to conduct meta-analysis. From conducting a meta-analysis of single arm proportions to meta-regression, almost all the tasks can be accomplished using the meta package. The important thing missing from this package and present in metafor package is moderator analysis using multiple moderators. 
+
+## Example of Meta-Analysis
+After installing and loading the package, let us take a simple example of conducting meta-analysis in R using an example dataset of single arm trial reporting a Y event rate for a drug X. In this article, we will only calculate the effect sizes and generate a default forest plot.
+
+## Importing dataset in R
+
+There are many ways to import a dataset in R. The way I prefer is to have the data in a csv file created using microsoft excel or any spreadsheet software and use the following command to import the dataset and assign it a name. Let's call it abc. 
+
+```{r Importing Dataset, eval=FALSE, echo=TRUE}
+
+abc <- read.csv(file.choose())
+
+```
+
+It will open a window for you to choose file. 
+
+Just so that you can copy what I am mentioning here, just copy the following code into R, and run it and it will generate the dataset for you. 
+```{r Dataset, echo=TRUE}
+
+abc <- structure(list(Study = c("Study 1", "Study 2", "Study 3", "Study 4", 
+                                "Study 5", "Study 6", "Study 7", "Study 8", 
+                                "Study 9", "Study 10", "Study 11", "Study 12",
+                                "Study 13", "Study 14", "Study 15", "Study 16"), 
+                      event.e = c(1L, 4L, 6L, 20L, 69L, 22L, 19L, 26L, 13L, 2L, 
+                                  7L, 2L, 29L, 6L, 11L, 4L), n.e = c(12L, 21L, 43L, 83L, 373L, 
+                                  219L, 164L, 264L, 102L, 14L, 53L, 60L, 172L, 55L, 49L, 14L)), 
+                       class = "data.frame", row.names = c(NA, -16L))
+
+```
+
+Now you can explore the dataset and see it's structure.
+
+```{r}
+head(abc) #If the dataset is large, it only shows first few rows. 
+```
+
+```{r}
+summary(abc) #For the summary of the dataset.
+```
+
+As you can see, our data set consists of 16 studies and it includes the number of events and total population in each study.
+
+## Metaprop Function
+Metaprop is a function in the meta package which can be used to pool the effect sizes of proportions from a single arm study. You will find more information about other functions from the meta documentations.
+
+## Code for meta-analysis
+The code for meta-analysis using metaprop function taking into account various variable arguments is below and we will assign the results of our meta-analysis to another variable, let's call it def.
+
+```{r metaprop, echo=TRUE}
+
+def <- metaprop(event = event.e, 
+                n= n.e, 
+                data=abc,
+                studlab = Study,
+                sm="Plogit",
+                level = 0.95,
+                comb.fixed=TRUE, comb.random=TRUE,
+                hakn=F,
+                method.tau="DL")
+
+```
+
+
+Now, if we take a look at the code, let me explain it. We have fed metaprop function a bunch of data which is necessary to carry out this meta-analysis. You can also find the details of all these arguments in the meta documentation. But I will briefly write them here. 
+
+Firstly we have assigned the appropriate column so that it can get the data. event=event.e means that for the event, the data is in the column event.e of our dataset, and the dataset is abc. And the study labels are in column Study. 
+sm indicates which summary measure should be used to pool effect sizes. Here we have used Plogit. Some other commonly used measures like Freeman Tukey Double Arscine Transformation are written along with their respective codes in documents. 
+Level stands for confidence level which we have set to 95%. comb.fixed and comb.random stands for fixed and random effects meta-analysis which we have set to true as we want to see the results from both of them. method.tau is the method used to calculate between study variance and the most commonly used is Dersimonian Laird which we have used. 
+
+There are a ton of other arguments but for the beginning, we will only use these ones and leave others to the default settings. 
+
+Now, in order to take a look at the results of the meta-analysis, just write the value which you have assigned to the results of the meta-anlaysis and run it using ctrl+enter. And it will give the details of meta-analysis including various statistical results. Here our command would be:
+
+```{r results, echo=TRUE}
+def
+```
+
+
+You will also find the values of Tau^2, Q statistic, I^2, which will help in identifying the heterogeneity in the studies.
+
+
+## Forest Plot
+We can create a default forest plot quite easily using the forest function in R. For the time being, let's create only a default plot in this paper. Forest function has numerous arguments, but we are not going into its detail in this article.
+
+The command and the output is as under: 
+
+
+```{r, fig.width=10}
+forest(def)
+```
+
+
+## Conclusion
+We have successfully generated the forest plot of our studies. ALthough a single arm meta-analysis is not commonly used, but we have used it to orient ourselves to the working of R and basic methodology for a meta-analysis in this language. 
+
+There are various other things to account for in meta-analysis which are beyond the scope of this paper. So, we will conclude here for now. 
+
+
+Do try to replicate it. It will help you get comfortable with R and RStudio. 
